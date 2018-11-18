@@ -2,6 +2,9 @@
 import requests
 import random
 import numpy as np
+import json
+
+SOURCES = ['the-new-york-times', 'politico', 'the-washington-post', 'the-hill', 'national-review', 'fox-news']
 
 def get_data():
 	nytimes_url = (
@@ -61,6 +64,23 @@ def get_data():
 			article_id += 1
 
 	return data
+
+def use_existing_data ():
+	data = {}
+	article_id = 0
+
+	for idx, source in enumerate (SOURCES):
+		with open('data/' + source + '.json', "r") as read_file:
+			articles = json.load(read_file)
+			label = 0 if idx < 3 else 1
+			for article in articles:
+				if article['desc']:
+					data[article_id] = (article['desc'], label)
+					article_id += 1
+
+	return data
+
+
 
 def get_words(article):
 	try:
@@ -162,7 +182,8 @@ def predict_from_naive_bayes_model(model, matrix):
 	return predictions
 
 def main():
-	data = get_data()
+	# data = get_data()
+	data = use_existing_data ()
 
 	train_size = int(len(data)*0.6)
 	train_ids = random.sample(list(data.keys()), train_size)
@@ -206,8 +227,6 @@ def main():
 		label = test_labels[i]
 		if prediction == label:
 			naive_bayes_accuracy += 1
-			print(test_articles[i])
-			print("True label: " + str(label) + "\t and prediction: " + str(prediction))
 
 	naive_bayes_accuracy /= len(test_labels)
 	print('Naive Bayes had an accuracy of {} on the testing set'.format(naive_bayes_accuracy))
