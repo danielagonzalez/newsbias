@@ -18,7 +18,7 @@ def get_data():
 	)
 	washpo_url = (
 		'https://newsapi.org/v2/everything?'
-		'sources=washington-post&'
+		'sources=the-washington-post&'
 		'pageSize=100&'
 		'apiKey=5694075ebf3948a7b12095c01d95c2f4'
 	)
@@ -173,7 +173,7 @@ def main():
 		train_labels.append(data[train_id][1])
 		del data[train_id]
 
-	val_size = train_size/3
+	val_size = int(train_size/3)
 	val_ids = random.sample(list(data.keys()), val_size)
 	val_articles = []
 	val_labels = []
@@ -197,8 +197,8 @@ def main():
 	naive_bayes_model = fit_naive_bayes_model(train_matrix, train_labels)
 	naive_bayes_predictions = predict_from_naive_bayes_model(naive_bayes_model, test_matrix)
 	
-	print naive_bayes_predictions
-	print test_labels
+	# print(naive_bayes_predictions)
+	# print(test_labels)
 
 	naive_bayes_accuracy = 0.0
 	for i in range(len(test_labels)):
@@ -206,6 +206,8 @@ def main():
 		label = test_labels[i]
 		if prediction == label:
 			naive_bayes_accuracy += 1
+			print(test_articles[i])
+			print("True label: " + str(label) + "\t and prediction: " + str(prediction))
 
 	naive_bayes_accuracy /= len(test_labels)
 	print('Naive Bayes had an accuracy of {} on the testing set'.format(naive_bayes_accuracy))
