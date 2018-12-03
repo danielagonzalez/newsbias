@@ -104,7 +104,7 @@ def train_lstm (x_train, x_test, y_train, y_test):
 	print("test auc:", roc_auc_score(y_test,output_test[:,1]))
 
 def train_cnn_lstm (x_train, x_test, y_train, y_test):
-	sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
+	sequence_input = Intput(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
 	embedding_layer = Embedding(MAX_NB_WORDS, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH, trainable=True)
 	embedded_sequences = embedding_layer(sequence_input)
 

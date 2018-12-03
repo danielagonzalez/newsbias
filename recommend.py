@@ -72,4 +72,4 @@ def make_predictions (sequences, model, articles, prob_liberal):
 
 articles, text = get_top_articles ()
 model = build_model ('model')
-make_predictions (text, model, articles, 0.2)
+make_predictions (text, model, articles, 0.7)
