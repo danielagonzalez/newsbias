@@ -16,9 +16,11 @@ from keras.models import Model
 
 SOURCES = ['the-new-york-times', 'politico', 'the-washington-post', 'the-hill', 'national-review', 'fox-news']
 MAX_SEQUENCE_LENGTH = 150
-EMBEDDING_DIM = 50
+EMBEDDING_DIM = 100
 N_CLASSES = 2
 MAX_NB_WORDS = 20000
+HIDDEN_SIZE = 256
+DROPOUT_PROB = 0.2
 
 def use_existing_data ():
 	data = []
@@ -83,7 +85,7 @@ def train_bow (x_train, x_test, y_train, y_test):
 	model = Model(sequence_input, predictions)
 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
 
-	model.fit(x_train, y_train, validation_split=0.2, epochs=10, batch_size=128)
+	model.fit(x_train, y_train, epochs=6, batch_size=128, validation_data=(x_test, to_categorical(np.asarray(y_test))))
 
 	output_test = model.predict(x_test)
 	print("test auc:", roc_auc_score(y_test,output_test[:,1]))
@@ -93,36 +95,36 @@ def train_lstm (x_train, x_test, y_train, y_test):
 	embedding_layer = Embedding(MAX_NB_WORDS, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH, trainable=True)
 	embedded_sequences = embedding_layer(sequence_input)
 
-	x = LSTM(128, dropout=0.2, recurrent_dropout=0.2)(embedded_sequences)
+	x = LSTM(HIDDEN_SIZE, dropout=DROPOUT_PROB, recurrent_dropout=DROPOUT_PROB)(embedded_sequences)
 	predictions = Dense(2, activation='softmax')(x)
 
 	model = Model(sequence_input, predictions)
 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
-	model.fit(x_train, y_train, validation_split=0.1, epochs=4, batch_size=128)
+	model.fit(x_train, y_train, epochs=5, batch_size=128, validation_data=(x_test, to_categorical(np.asarray(y_test))))
 
 	output_test = model.predict(x_test)
 	print("test auc:", roc_auc_score(y_test,output_test[:,1]))
 
 def train_cnn_lstm (x_train, x_test, y_train, y_test):
-	sequence_input = Intput(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
+	sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
 	embedding_layer = Embedding(MAX_NB_WORDS, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH, trainable=True)
 	embedded_sequences = embedding_layer(sequence_input)
 
 	# 1D convolution with 64 output channels
-	x = Conv1D(64, 5)(embedded_sequences)
+	x = Conv1D(HIDDEN_SIZE/2, 5)(embedded_sequences)
 	# MaxPool divides the length of the sequence by 5
 	x = MaxPooling1D(5)(x)
-	x = Dropout(0.2)(x)
-	x = Conv1D(64, 5)(x)
+	x = Dropout(DROPOUT_PROB)(x)
+	x = Conv1D(HIDDEN_SIZE/2, 5)(x)
 	x = MaxPooling1D(5)(x)
 	# LSTM layer with a hidden size of 64
-	x = Dropout(0.2)(x)
-	x = LSTM(128)(x)
+	x = Dropout(DROPOUT_PROB)(x)
+	x = LSTM(HIDDEN_SIZE)(x)
 	predictions = Dense(2, activation='softmax')(x)
 
 	model = Model(sequence_input, predictions)
 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
-	model.fit(x_train, y_train, validation_split=0.1, epochs=3, batch_size=128)
+	model.fit(x_train, y_train, validation_data=(x_test, to_categorical(np.asarray(y_test))), epochs=6, batch_size=128)
 	output_test = model.predict(x_test)
 	# print(output_test)
 	# print(y_test)
@@ -140,5 +142,8 @@ def save_model (model):
 
 data, labels = use_existing_data ()
 x_train, x_test, y_train, y_test = preprocess (data, labels)
+
+# train_bow (x_train, x_test, y_train, y_test)
+# model = train_lstm (x_train, x_test, y_train, y_test)
 model = train_cnn_lstm (x_train, x_test, y_train, y_test)
 save_model (model)
