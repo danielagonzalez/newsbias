@@ -18,7 +18,7 @@ SOURCES = ['the-new-york-times', 'politico', 'the-washington-post', 'the-hill', 
 MAX_SEQUENCE_LENGTH = 150
 EMBEDDING_DIM = 100
 N_CLASSES = 2
-MAX_NB_WORDS = 20000
+MAX_NB_WORDS = 50000
 HIDDEN_SIZE = 256
 DROPOUT_PROB = 0.2
 
@@ -43,6 +43,12 @@ def preprocess (text, labels, save=True):
 	texts_train = train_text
 	# print(texts_train)
 	texts_test = test_text
+	# print texts_test[0]
+	# print texts_test[1]
+	# print texts_test[-1]
+	# print test_y[0]
+	# print test_y[1]
+	# print test_y[-1]
 	
 	tokenizer = Tokenizer(num_words = MAX_NB_WORDS)
 	tokenizer.fit_on_texts(texts_train)
@@ -88,6 +94,9 @@ def train_bow (x_train, x_test, y_train, y_test):
 	model.fit(x_train, y_train, epochs=6, batch_size=128, validation_data=(x_test, to_categorical(np.asarray(y_test))))
 
 	output_test = model.predict(x_test)
+	# # print(output_test[0])
+	# # print(output_test[1])
+	# # print(output_test[-1])
 	print("test auc:", roc_auc_score(y_test,output_test[:,1]))
 
 def train_lstm (x_train, x_test, y_train, y_test):
@@ -103,6 +112,9 @@ def train_lstm (x_train, x_test, y_train, y_test):
 	model.fit(x_train, y_train, epochs=5, batch_size=128, validation_data=(x_test, to_categorical(np.asarray(y_test))))
 
 	output_test = model.predict(x_test)
+	# print(output_test[0])
+	# print(output_test[1])
+	# print(output_test[-1])
 	print("test auc:", roc_auc_score(y_test,output_test[:,1]))
 
 def train_cnn_lstm (x_train, x_test, y_train, y_test):
@@ -126,8 +138,11 @@ def train_cnn_lstm (x_train, x_test, y_train, y_test):
 	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
 	model.fit(x_train, y_train, validation_data=(x_test, to_categorical(np.asarray(y_test))), epochs=6, batch_size=128)
 	output_test = model.predict(x_test)
-	# print(output_test)
+	# # print(output_test)
 	# print(y_test)
+	# print(output_test[0])
+	# print(output_test[1])
+	# print(output_test[-1])
 	print("test auc:", roc_auc_score(y_test,output_test[:,1]))
 
 	return model
@@ -143,7 +158,7 @@ def save_model (model):
 data, labels = use_existing_data ()
 x_train, x_test, y_train, y_test = preprocess (data, labels)
 
-# train_bow (x_train, x_test, y_train, y_test)
-# model = train_lstm (x_train, x_test, y_train, y_test)
+train_bow (x_train, x_test, y_train, y_test)
+train_lstm (x_train, x_test, y_train, y_test)
 model = train_cnn_lstm (x_train, x_test, y_train, y_test)
 save_model (model)
